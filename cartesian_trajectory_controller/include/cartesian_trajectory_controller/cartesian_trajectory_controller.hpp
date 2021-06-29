@@ -41,7 +41,6 @@
 //-----------------------------------------------------------------------------
 
 #include <cartesian_trajectory_controller/cartesian_trajectory_controller.h>
-#include "dist_sensor_service/DistSensor.h"
 #include "hardware_interface/robot_hw.h"
 
 namespace cartesian_trajectory_controller
@@ -84,8 +83,9 @@ namespace cartesian_trajectory_controller
       action_server_->start();
 
       // Distance sensor topic
-      dist_sensor_serv = nh.serviceClient<dist_sensor_service::DistSensor>("dist_sensor_service");
+      dist_sensor_sub = nh.subscribe("dist_sensor", 1, &CartesianTrajectoryController<HWInterface>::sensorCallback, this);
       offset = 0;
+      offset_filtered = 0;
 
       return true;
     }
@@ -127,17 +127,31 @@ namespace cartesian_trajectory_controller
 
           cartesian_ros_control::CartesianState desired;
           trajectory_.sample(trajectory_duration_.now.toSec(), desired);
-          dist_sensor_service::DistSensor srv;
-          if (dist_sensor_serv.call(srv))
-          {
-            offset = (double)srv.response.distance;
-          }
-          desired.p.z() += offset;
+          // low pass filter the offset to avoid jumpy behavior in the
+          // trajectory
+          offset_filtered = 0.98133 * offset_filtered + 0.018673 * offset;
+
+          // transform the filtered offset from the TCP coordinate system to
+          // global coordinates
+          auto actual = ControlPolicy::getState();
+          auto q_tcp = actual.q;
+          auto q_tcp_inv = actual.q.inverse();
+          auto p_base = actual.q;
+          p_base.x() = 0;
+          p_base.y() = 0;
+          p_base.z() = offset_filtered;
+          p_base.w() = 0;
+          auto p_tcp = q_tcp * p_base * q_tcp_inv;
+
+          // apply the offset to the desired state
+          //std::cout << offset_filtered << " " << p_tcp.z() << std::endl;
+          desired.p.x() += p_tcp.x();
+          desired.p.y() += p_tcp.y();
+          desired.p.z() += p_tcp.z();
 
           ControlPolicy::updateCommand(desired);
 
           // Give feedback
-          auto actual = ControlPolicy::getState();
           auto error = desired - actual;
 
           cartesian_control_msgs::FollowCartesianTrajectoryFeedback f;
@@ -307,6 +321,12 @@ namespace cartesian_trajectory_controller
 
       return true;
 
+    }
+
+  template <class HWInterface>
+    void CartesianTrajectoryController<HWInterface>::sensorCallback(const dist_sensor_publisher::DistSensorConstPtr& dist_msg)
+    {
+      offset = dist_msg->distance;
     }
 
 }

@@ -74,7 +74,7 @@
   <exec_depend>controller_manager</exec_depend>
   <exec_depend>hardware_interface</exec_depend>
 
-  <depend>dist_sensor_service</depend>
+  <depend>dist_sensor_publisher</depend>
 
 
   <!-- This is important for the export to work -->

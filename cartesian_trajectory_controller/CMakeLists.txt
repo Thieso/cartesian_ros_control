@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   roscpp
   rospy
-  dist_sensor_service
+  dist_sensor_publisher
 )
 
 ## System dependencies are found with CMake's conventions
@@ -120,7 +120,7 @@ catkin_package(
   pluginlib
   roscpp
   rospy
-  dist_sensor_service
+  dist_sensor_publisher
 #  DEPENDS system_lib
 )
 

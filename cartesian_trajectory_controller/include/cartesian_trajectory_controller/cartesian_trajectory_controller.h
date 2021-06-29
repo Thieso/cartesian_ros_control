@@ -48,6 +48,7 @@
 #include <mutex>
 #include <actionlib/server/simple_action_server.h>
 #include <cartesian_interface/speed_scaling_interface.h>
+#include "dist_sensor_publisher/DistSensor.h"
 
 namespace cartesian_trajectory_controller
 {
@@ -77,6 +78,8 @@ namespace cartesian_trajectory_controller
 
       void preemptCB();
 
+      void sensorCallback(const dist_sensor_publisher::DistSensorConstPtr&);
+
     protected:
       using ControlPolicy = cartesian_ros_control::ControlPolicy<HWInterface>;
 
@@ -95,12 +98,13 @@ namespace cartesian_trajectory_controller
       bool withinTolerances(const cartesian_ros_control::CartesianState& error,
                             const cartesian_control_msgs::CartesianTolerance& tolerance);
 
+
     private:
       std::unique_ptr<hardware_interface::SpeedScalingHandle> speed_scaling_;
       std::unique_ptr<actionlib::SimpleActionServer<cartesian_control_msgs::FollowCartesianTrajectoryAction> >
         action_server_;
-      ros::ServiceClient dist_sensor_serv;
-      double offset;
+      ros::Subscriber dist_sensor_sub;
+      double offset, offset_filtered;
       std::atomic<bool> done_;
       std::mutex lock_;
       cartesian_ros_control::CartesianTrajectory trajectory_;
