@@ -173,11 +173,6 @@ namespace cartesian_trajectory_controller
         }
 
       }
-      else // Stay where we are
-      {
-        ControlPolicy::updateCommand(ControlPolicy::getState());
-      }
-
     }
 
 
