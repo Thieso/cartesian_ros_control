@@ -48,7 +48,7 @@
 #include <mutex>
 #include <actionlib/server/simple_action_server.h>
 #include <cartesian_interface/speed_scaling_interface.h>
-#include "dist_sensor_publisher/DistSensor.h"
+#include "dist_sensor_controller/DistSensor.h"
 
 namespace cartesian_trajectory_controller
 {
@@ -78,7 +78,7 @@ namespace cartesian_trajectory_controller
 
       void preemptCB();
 
-      void sensorCallback(const dist_sensor_publisher::DistSensorConstPtr&);
+      void sensorCallback(const dist_sensor_controller::DistSensorConstPtr&);
 
     protected:
       using ControlPolicy = cartesian_ros_control::ControlPolicy<HWInterface>;

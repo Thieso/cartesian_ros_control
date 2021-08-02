@@ -319,9 +319,9 @@ namespace cartesian_trajectory_controller
     }
 
   template <class HWInterface>
-    void CartesianTrajectoryController<HWInterface>::sensorCallback(const dist_sensor_publisher::DistSensorConstPtr& dist_msg)
+    void CartesianTrajectoryController<HWInterface>::sensorCallback(const dist_sensor_controller::DistSensorConstPtr& dist_msg)
     {
-      offset = dist_msg->distance;
+      offset = dist_msg->control_signal;
     }
 
 }
